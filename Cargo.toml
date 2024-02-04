@@ -1,0 +1,16 @@
+[package]
+name = "rebecca_bot"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dotenvy = "0.15.7"
+env_logger = "0.11.1"
+log = "0.4.20"
+slack-morphism = { version = "2.0.0", features = ["hyper"] }
+tokio = { version = "1.36.0", features = ["macros", "rt-multi-thread", "net"] }
+tracing = "0.1.40"
+tracing-subscriber = {version = "0.3.18", features = ["env-filter"]}
+lazy_static = "1.4.0"
