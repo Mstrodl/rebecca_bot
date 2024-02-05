@@ -61,13 +61,15 @@ lazy_static::lazy_static! {
     let mut dictionary: HashMap<Pronunciation, Vec<Word>> = HashMap::new();
     for line in include_str!("dictionary/text_to_sounds.txt").lines() {
       if let Some((word, pronunciation)) = line.split_once('\t') {
-        let word = word.to_lowercase();
-        let pronunciation = pronunciation.strip_suffix('/').unwrap().strip_prefix('/').unwrap();
+        for pronunciation in pronunciation.split(", ") {
+          let word = word.to_lowercase();
+          let pronunciation = pronunciation.strip_suffix('/').unwrap().strip_prefix('/').unwrap();
 
-        if let Some(values) = dictionary.get_mut(pronunciation) {
-          values.push(word);
-        } else {
-          dictionary.insert(pronunciation, vec![word]);
+          if let Some(values) = dictionary.get_mut(pronunciation) {
+            values.push(word);
+          } else {
+            dictionary.insert(pronunciation, vec![word]);
+          }
         }
       }
     }
@@ -77,13 +79,15 @@ lazy_static::lazy_static! {
     let mut dictionary: HashMap<Word, Vec<Pronunciation>> = HashMap::new();
     for line in include_str!("dictionary/text_to_sounds.txt").lines() {
       if let Some((word, pronunciation)) = line.split_once('\t') {
-        let word = word.to_lowercase();
-        let pronunciation = pronunciation.strip_suffix('/').unwrap().strip_prefix('/').unwrap();
+        for pronunciation in pronunciation.split(", ") {
+          let word = word.to_lowercase();
+          let pronunciation = pronunciation.strip_suffix('/').unwrap().strip_prefix('/').unwrap();
 
-        if let Some(values) = dictionary.get_mut(&word) {
-          values.push(pronunciation);
-        } else {
-          dictionary.insert(word.to_string(), vec![pronunciation]);
+          if let Some(values) = dictionary.get_mut(&word) {
+            values.push(pronunciation);
+          } else {
+            dictionary.insert(word.to_string(), vec![pronunciation]);
+          }
         }
       }
     }
