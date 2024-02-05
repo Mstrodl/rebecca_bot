@@ -150,7 +150,7 @@ async fn on_push_event(
       for word in text
         .to_lowercase()
         .split_whitespace()
-        .flat_map(|word| word.split(|character: char| character.is_alphabetic()))
+        .flat_map(|word| word.split(|character: char| !character.is_alphabetic()))
         .filter(|word| !word.is_empty())
       {
         if let Some(er_less_word) = get_er_word(word.to_string()) {
