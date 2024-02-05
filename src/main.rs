@@ -147,7 +147,12 @@ async fn on_push_event(
     {
       println!("{text}");
       println!("{message:?}");
-      for word in text.to_lowercase().split_whitespace() {
+      for word in text
+        .to_lowercase()
+        .split_whitespace()
+        .flat_map(|word| word.split(|character: char| character.is_alphabetic()))
+        .filter(|word| !word.is_empty())
+      {
         if let Some(er_less_word) = get_er_word(word.to_string()) {
           println!("Word discovered! {er_less_word}");
           session
