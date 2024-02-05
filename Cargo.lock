@@ -972,6 +972,7 @@ dependencies = [
  "env_logger",
  "lazy_static",
  "log",
+ "rand",
  "slack-morphism",
  "tokio",
  "tracing",

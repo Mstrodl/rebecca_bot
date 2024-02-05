@@ -155,17 +155,19 @@ async fn on_push_event(
       {
         if let Some(er_less_word) = get_er_word(word.to_string()) {
           println!("Word discovered! {er_less_word}");
-          session
-            .chat_post_message(
-              &SlackApiChatPostMessageRequest::new(message.origin.channel.unwrap(), {
-                let mut content = SlackMessageContent::new();
-                content.text(format!("{er_less_word} 'er?! I hardly know her!"));
-                content
-              })
-              .with_thread_ts(message.origin.thread_ts.unwrap_or(message.origin.ts)),
-            )
-            .await?;
-          break;
+          if rand::random::<u8>() < 64 {
+            session
+              .chat_post_message(
+                &SlackApiChatPostMessageRequest::new(message.origin.channel.unwrap(), {
+                  let mut content = SlackMessageContent::new();
+                  content.text(format!("{er_less_word} 'er?! I hardly know her!"));
+                  content
+                })
+                .with_thread_ts(message.origin.thread_ts.unwrap_or(message.origin.ts)),
+              )
+              .await?;
+            break;
+          }
         }
       }
       Ok(())
