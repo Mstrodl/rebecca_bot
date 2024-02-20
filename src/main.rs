@@ -1,5 +1,6 @@
 #![feature(if_let_guard)]
 
+use rand::{thread_rng, seq::SliceRandom};
 use slack_morphism::prelude::*;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -110,6 +111,8 @@ fn get_er_word(word: String) -> Option<String> {
         println!("Found an er-less sound: {er_less_sound}");
         if let Some(words) = SOUNDS_TO_TEXT.get(er_less_sound) {
           println!("Words are: {words:?}");
+          let mut words = words.clone();
+          words.shuffle(&mut thread_rng());
           for er_less_word in words {
             let er_less_word: &String = &er_less_word.to_string();
             println!(
