@@ -1,11 +1,31 @@
 #![feature(if_let_guard)]
 
-use rand::{thread_rng, seq::SliceRandom};
+use rand::{seq::SliceRandom, thread_rng};
 use slack_morphism::prelude::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-const ER_SOUND: &str = "ɝ";
+struct Suffix {
+  trigger: &'static str,
+  response_a: &'static str,
+  response_b: &'static str,
+}
+const ER_SOUND: Suffix = Suffix {
+  trigger: "ɝ",
+  response_a: "'er",
+  response_b: "her",
+};
+const EM_SOUND: Suffix = Suffix {
+  trigger: "əm",
+  response_a: "'im",
+  response_b: "him",
+};
+const ET_SOUND: Suffix = Suffix {
+  trigger: "ət",
+  response_a: "it",
+  response_b: "it",
+};
+const SOUNDS: [Suffix; 3] = [ER_SOUND, EM_SOUND, ET_SOUND];
 const DELIMITER: char = '\0';
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -104,25 +124,25 @@ lazy_static::lazy_static! {
   };
 }
 
-fn get_er_word(word: String) -> Option<String> {
+fn get_suffix_less_word(word: String, suffix: &Suffix) -> Option<String> {
   if let Some(pronunciations) = TEXT_TO_SOUNDS.get(&word.to_string()) {
     for pronunciation in pronunciations {
-      if let Some(er_less_sound) = pronunciation.strip_suffix(ER_SOUND) {
-        println!("Found an er-less sound: {er_less_sound}");
-        if let Some(words) = SOUNDS_TO_TEXT.get(er_less_sound) {
+      if let Some(suffix_less_sound) = pronunciation.strip_suffix(suffix.trigger) {
+        println!("Found an suffix-less sound: {suffix_less_sound}");
+        if let Some(words) = SOUNDS_TO_TEXT.get(suffix_less_sound) {
           println!("Words are: {words:?}");
           let mut words = words.clone();
           words.shuffle(&mut thread_rng());
-          for er_less_word in words {
-            let er_less_word: &String = &er_less_word.to_string();
+          for suffix_less_word in words {
+            let suffix_less_word: &String = &suffix_less_word.to_string();
             println!(
               "We found a part of speech!!! {:?}",
-              PARTS_OF_SPEECH.get(er_less_word.as_str())
+              PARTS_OF_SPEECH.get(suffix_less_word.as_str())
             );
-            if let Some(pos) = PARTS_OF_SPEECH.get(er_less_word.as_str()) {
+            if let Some(pos) = PARTS_OF_SPEECH.get(suffix_less_word.as_str()) {
               for pos in pos {
                 if *pos == PartOfSpeech::VerbTransitive || *pos == PartOfSpeech::VerbUsuParticiple {
-                  return Some(er_less_word.to_string());
+                  return Some(suffix_less_word.to_string());
                 }
               }
             }
@@ -160,20 +180,25 @@ async fn on_push_event(
         .flat_map(|word| word.split(|character: char| !character.is_alphabetic()))
         .filter(|word| !word.is_empty())
       {
-        if let Some(er_less_word) = get_er_word(word.to_string()) {
-          println!("Word discovered! {er_less_word}");
-          if rand::random::<u8>() < 64 {
-            session
-              .chat_post_message(
-                &SlackApiChatPostMessageRequest::new(message.origin.channel.unwrap(), {
-                  let mut content = SlackMessageContent::new();
-                  content.text(format!("{er_less_word} 'er?! I hardly know her!"));
-                  content
-                })
-                .with_thread_ts(message.origin.thread_ts.unwrap_or(message.origin.ts)),
-              )
-              .await?;
-            break;
+        for suffix in &SOUNDS {
+          if let Some(suffix_less_word) = get_suffix_less_word(word.to_string(), suffix) {
+            println!("Word discovered! {suffix_less_word}");
+            if rand::random::<u8>() < 64 {
+              let Suffix { response_a, response_b, .. } = suffix;
+              session
+                .chat_post_message(
+                  &SlackApiChatPostMessageRequest::new(message.origin.channel.clone().unwrap(), {
+                    let mut content = SlackMessageContent::new();
+                    content.text(format!(
+                      "{suffix_less_word} {response_a}?! I hardly know {response_b}!"
+                    ));
+                    content
+                  })
+                  .with_thread_ts(message.origin.thread_ts.clone().unwrap_or(message.origin.ts.clone())),
+                )
+                .await?;
+              break;
+            }
           }
         }
       }
