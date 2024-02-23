@@ -174,7 +174,7 @@ async fn on_push_event(
     {
       println!("{text}");
       println!("{message:?}");
-      for word in text
+      'outer: for word in text
         .to_lowercase()
         .split_whitespace()
         .flat_map(|word| word.split(|character: char| !character.is_alphabetic()))
@@ -184,7 +184,11 @@ async fn on_push_event(
           if let Some(suffix_less_word) = get_suffix_less_word(word.to_string(), suffix) {
             println!("Word discovered! {suffix_less_word}");
             if rand::random::<u8>() < 64 {
-              let Suffix { response_a, response_b, .. } = suffix;
+              let Suffix {
+                response_a,
+                response_b,
+                ..
+              } = suffix;
               session
                 .chat_post_message(
                   &SlackApiChatPostMessageRequest::new(message.origin.channel.clone().unwrap(), {
@@ -194,10 +198,16 @@ async fn on_push_event(
                     ));
                     content
                   })
-                  .with_thread_ts(message.origin.thread_ts.clone().unwrap_or(message.origin.ts.clone())),
+                  .with_thread_ts(
+                    message
+                      .origin
+                      .thread_ts
+                      .clone()
+                      .unwrap_or(message.origin.ts.clone()),
+                  ),
                 )
                 .await?;
-              break;
+              break 'outer;
             }
           }
         }
