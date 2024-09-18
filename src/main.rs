@@ -183,7 +183,7 @@ async fn on_push_event(
         for suffix in &SOUNDS {
           if let Some(suffix_less_word) = get_suffix_less_word(word.to_string(), suffix) {
             println!("Word discovered! {suffix_less_word}");
-            if rand::random::<u8>() < 64 {
+            if rand::random::<u8>() < 16 {
               let Suffix {
                 response_a,
                 response_b,
